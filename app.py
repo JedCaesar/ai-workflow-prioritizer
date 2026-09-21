@@ -70,15 +70,65 @@ def demo_workflow() -> Workflow:
     )
 
 
+def comparison_workflows() -> tuple[Workflow, ...]:
+    """Return realistic examples with different levels of AI readiness."""
+
+    return (
+        demo_workflow(),
+        Workflow(
+            name="Extract data from supplier invoices",
+            frequency=4,
+            hours_per_week=12,
+            repetition=5,
+            data_readiness=3,
+            risk=2,
+        ),
+        Workflow(
+            name="Make final executive strategy decisions",
+            frequency=2,
+            hours_per_week=5,
+            repetition=1,
+            data_readiness=3,
+            risk=5,
+        ),
+    )
+
+
+def show_comparison(workflows: tuple[Workflow, ...]) -> None:
+    """Rank workflows from strongest to weakest AI candidate."""
+
+    ranked = sorted(
+        ((workflow, assess_workflow(workflow)) for workflow in workflows),
+        key=lambda item: item[1].score,
+        reverse=True,
+    )
+
+    print("\nAI Workflow Comparison")
+    print("=" * 78)
+    print(f"{'Score':<8}{'Workflow':<48}Recommendation")
+    print("-" * 78)
+    for workflow, result in ranked:
+        print(f"{result.score:<8}{workflow.name:<48}{result.recommendation}")
+    print("=" * 78)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Score a business workflow for AI automation readiness."
     )
-    parser.add_argument(
+    mode = parser.add_mutually_exclusive_group()
+    mode.add_argument(
         "--demo", action="store_true", help="run with a sample customer-support workflow"
     )
+    mode.add_argument(
+        "--compare", action="store_true", help="rank several example workflows"
+    )
     args = parser.parse_args()
-    show_assessment(demo_workflow() if args.demo else collect_workflow())
+
+    if args.compare:
+        show_comparison(comparison_workflows())
+    else:
+        show_assessment(demo_workflow() if args.demo else collect_workflow())
 
 
 if __name__ == "__main__":
