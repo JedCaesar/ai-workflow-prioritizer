@@ -1,5 +1,6 @@
 import unittest
 
+from app import assessment_record
 from workflow_scorer import Workflow, assess_workflow
 
 
@@ -25,6 +26,15 @@ class WorkflowScorerTests(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             assess_workflow(workflow)
+
+    def test_assessment_record_is_ready_for_json(self):
+        workflow = Workflow("Support triage", 5, 20, 5, 5, 1)
+
+        record = assessment_record(workflow)
+
+        self.assertEqual(record["workflow"], "Support triage")
+        self.assertEqual(record["score"], 90)
+        self.assertEqual(record["recommendation"], "Strong candidate")
 
 
 if __name__ == "__main__":
