@@ -1,6 +1,7 @@
 """Command-line interface for the AI Workflow Prioritizer."""
 
 import argparse
+import json
 
 from workflow_scorer import Workflow, assess_workflow
 
@@ -55,6 +56,26 @@ def show_assessment(workflow: Workflow) -> None:
     print(f"Recommendation: {result.recommendation}")
     print(result.explanation)
     print("=" * 48)
+
+
+def assessment_record(workflow: Workflow) -> dict[str, object]:
+    """Return a serializable assessment for APIs and automation workflows."""
+
+    result = assess_workflow(workflow)
+    return {
+        "workflow": workflow.name,
+        "score": result.score,
+        "recommendation": result.recommendation,
+        "explanation": result.explanation,
+    }
+
+
+def show_json(workflows: tuple[Workflow, ...]) -> None:
+    """Print one or more assessments as structured JSON."""
+
+    records = [assessment_record(workflow) for workflow in workflows]
+    output: object = records[0] if len(records) == 1 else records
+    print(json.dumps(output, indent=2))
 
 
 def demo_workflow() -> Workflow:
@@ -123,12 +144,23 @@ def main() -> None:
     mode.add_argument(
         "--compare", action="store_true", help="rank several example workflows"
     )
+    parser.add_argument(
+        "--json", action="store_true", help="print machine-readable JSON output"
+    )
     args = parser.parse_args()
 
+    workflows = comparison_workflows() if args.compare else (
+        demo_workflow() if args.demo else collect_workflow(),
+    )
+
+    if args.json:
+        show_json(workflows)
+        return
+
     if args.compare:
-        show_comparison(comparison_workflows())
+        show_comparison(workflows)
     else:
-        show_assessment(demo_workflow() if args.demo else collect_workflow())
+        show_assessment(workflows[0])
 
 
 if __name__ == "__main__":
