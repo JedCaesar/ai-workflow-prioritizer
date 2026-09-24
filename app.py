@@ -1,7 +1,9 @@
 """Command-line interface for the AI Workflow Prioritizer."""
 
 import argparse
+import csv
 import json
+from pathlib import Path
 
 from workflow_scorer import Workflow, assess_workflow
 
@@ -78,6 +80,42 @@ def show_json(workflows: tuple[Workflow, ...]) -> None:
     print(json.dumps(output, indent=2))
 
 
+def load_workflows(path: str) -> tuple[Workflow, ...]:
+    """Load workflow assessments from a CSV file."""
+
+    required_columns = {
+        "name",
+        "frequency",
+        "hours_per_week",
+        "repetition",
+        "data_readiness",
+        "risk",
+    }
+
+    with Path(path).open(newline="", encoding="utf-8") as csv_file:
+        reader = csv.DictReader(csv_file)
+        missing = required_columns - set(reader.fieldnames or ())
+        if missing:
+            columns = ", ".join(sorted(missing))
+            raise ValueError(f"CSV is missing required columns: {columns}")
+
+        workflows = tuple(
+            Workflow(
+                name=row["name"].strip(),
+                frequency=int(row["frequency"]),
+                hours_per_week=float(row["hours_per_week"]),
+                repetition=int(row["repetition"]),
+                data_readiness=int(row["data_readiness"]),
+                risk=int(row["risk"]),
+            )
+            for row in reader
+        )
+
+    if not workflows:
+        raise ValueError("CSV must include at least one workflow")
+    return workflows
+
+
 def demo_workflow() -> Workflow:
     """Return an example that can be run without answering prompts."""
 
@@ -144,20 +182,26 @@ def main() -> None:
     mode.add_argument(
         "--compare", action="store_true", help="rank several example workflows"
     )
+    mode.add_argument(
+        "--input", metavar="CSV_FILE", help="score workflows from a CSV file"
+    )
     parser.add_argument(
         "--json", action="store_true", help="print machine-readable JSON output"
     )
     args = parser.parse_args()
 
-    workflows = comparison_workflows() if args.compare else (
-        demo_workflow() if args.demo else collect_workflow(),
-    )
+    if args.input:
+        workflows = load_workflows(args.input)
+    elif args.compare:
+        workflows = comparison_workflows()
+    else:
+        workflows = (demo_workflow() if args.demo else collect_workflow(),)
 
     if args.json:
         show_json(workflows)
         return
 
-    if args.compare:
+    if len(workflows) > 1:
         show_comparison(workflows)
     else:
         show_assessment(workflows[0])
