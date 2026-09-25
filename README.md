@@ -37,6 +37,38 @@ Recommendation: Strong candidate
 Start with a small pilot and measure time saved, quality, and adoption.
 ```
 
+## Compare multiple workflows
+
+Rank the included examples from strongest to weakest AI candidate:
+
+```bash
+python app.py --compare
+```
+
+To assess your own workflow inventory, copy `examples/workflows.csv`, replace the
+sample rows, and run:
+
+```bash
+python app.py --input examples/workflows.csv
+```
+
+The CSV must include these columns:
+
+```text
+name,frequency,hours_per_week,repetition,data_readiness,risk
+```
+
+Frequency, repetition, data readiness, and risk use ratings from 1 to 5.
+
+## JSON output
+
+Add `--json` when another script or automation needs structured output:
+
+```bash
+python app.py --demo --json
+python app.py --input examples/workflows.csv --json
+```
+
 ## How the score works
 
 The score rewards frequent, time-consuming, repetitive workflows with accessible data. Risk acts as a penalty because high-impact decisions need stronger safeguards and human review.
@@ -51,16 +83,17 @@ python -m unittest discover -s tests -v
 
 ## Ideas for beginners
 
-- Export the result to a JSON or CSV file
-- Score several workflows and rank them
 - Add a simple web interface with Flask or Streamlit
 - Store previous assessments in SQLite
 - Draw a chart of the strongest candidates
+- Add validation messages for malformed CSV rows
 
 ## Project structure
 
 ```text
 ai-workflow-prioritizer/
+|-- examples/
+|   `-- workflows.csv
 |-- app.py
 |-- workflow_scorer.py
 |-- tests/
