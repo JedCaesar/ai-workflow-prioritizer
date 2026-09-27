@@ -54,6 +54,18 @@ class WorkflowScorerTests(unittest.TestCase):
         self.assertEqual(workflows[0].name, "Support triage")
         self.assertEqual(workflows[1].hours_per_week, 10)
 
+    def test_load_workflows_rejects_missing_columns(self):
+        csv_text = "name,frequency,hours_per_week,repetition\nSupport triage,5,20,5\n"
+
+        with TemporaryDirectory() as directory:
+            csv_path = Path(directory) / "workflows.csv"
+            csv_path.write_text(csv_text, encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                ValueError, "CSV is missing required columns: data_readiness, risk"
+            ):
+                load_workflows(str(csv_path))
+
 
 if __name__ == "__main__":
     unittest.main()
