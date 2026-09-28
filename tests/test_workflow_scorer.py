@@ -66,6 +66,21 @@ class WorkflowScorerTests(unittest.TestCase):
             ):
                 load_workflows(str(csv_path))
 
+    def test_load_workflows_identifies_invalid_number_row(self):
+        csv_text = (
+            "name,frequency,hours_per_week,repetition,data_readiness,risk\n"
+            "Support triage,often,20,5,5,1\n"
+        )
+
+        with TemporaryDirectory() as directory:
+            csv_path = Path(directory) / "workflows.csv"
+            csv_path.write_text(csv_text, encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                ValueError, "CSV row 2 contains an invalid number"
+            ):
+                load_workflows(str(csv_path))
+
 
 if __name__ == "__main__":
     unittest.main()
