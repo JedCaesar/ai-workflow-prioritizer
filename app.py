@@ -99,21 +99,26 @@ def load_workflows(path: str) -> tuple[Workflow, ...]:
             columns = ", ".join(sorted(missing))
             raise ValueError(f"CSV is missing required columns: {columns}")
 
-        workflows = tuple(
-            Workflow(
-                name=row["name"].strip(),
-                frequency=int(row["frequency"]),
-                hours_per_week=float(row["hours_per_week"]),
-                repetition=int(row["repetition"]),
-                data_readiness=int(row["data_readiness"]),
-                risk=int(row["risk"]),
-            )
-            for row in reader
-        )
+        workflows = []
+        for row_number, row in enumerate(reader, start=2):
+            try:
+                workflow = Workflow(
+                    name=row["name"].strip(),
+                    frequency=int(row["frequency"]),
+                    hours_per_week=float(row["hours_per_week"]),
+                    repetition=int(row["repetition"]),
+                    data_readiness=int(row["data_readiness"]),
+                    risk=int(row["risk"]),
+                )
+            except (TypeError, ValueError) as error:
+                raise ValueError(
+                    f"CSV row {row_number} contains an invalid number"
+                ) from error
+            workflows.append(workflow)
 
     if not workflows:
         raise ValueError("CSV must include at least one workflow")
-    return workflows
+    return tuple(workflows)
 
 
 def demo_workflow() -> Workflow:
