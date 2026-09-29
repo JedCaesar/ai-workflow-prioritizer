@@ -101,9 +101,13 @@ def load_workflows(path: str) -> tuple[Workflow, ...]:
 
         workflows = []
         for row_number, row in enumerate(reader, start=2):
+            name = row["name"].strip()
+            if not name:
+                raise ValueError(f"CSV row {row_number} must include a workflow name")
+
             try:
                 workflow = Workflow(
-                    name=row["name"].strip(),
+                    name=name,
                     frequency=int(row["frequency"]),
                     hours_per_week=float(row["hours_per_week"]),
                     repetition=int(row["repetition"]),
