@@ -96,6 +96,18 @@ class WorkflowScorerTests(unittest.TestCase):
             ):
                 load_workflows(str(csv_path))
 
+    def test_load_workflows_rejects_header_only_csv(self):
+        csv_text = "name,frequency,hours_per_week,repetition,data_readiness,risk\n"
+
+        with TemporaryDirectory() as directory:
+            csv_path = Path(directory) / "workflows.csv"
+            csv_path.write_text(csv_text, encoding="utf-8")
+
+            with self.assertRaisesRegex(
+                ValueError, "CSV must include at least one workflow"
+            ):
+                load_workflows(str(csv_path))
+
 
 if __name__ == "__main__":
     unittest.main()
