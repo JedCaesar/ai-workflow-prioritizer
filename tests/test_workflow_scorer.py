@@ -29,6 +29,14 @@ class WorkflowScorerTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             assess_workflow(workflow)
 
+    def test_negative_weekly_hours_are_rejected(self):
+        workflow = Workflow("Invalid hours", 3, -1, 3, 3, 2)
+
+        with self.assertRaisesRegex(
+            ValueError, "hours_per_week cannot be negative"
+        ):
+            assess_workflow(workflow)
+
     def test_assessment_record_is_ready_for_json(self):
         workflow = Workflow("Support triage", 5, 20, 5, 5, 1)
 
